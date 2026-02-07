@@ -187,14 +187,20 @@ The CSV lists EVERY person (employees + spouses + children):
    - Say "No coverage period in CSV to compare"
 
 4. **Total Amounts**:
-   - PDF: Find the "TOTAL" or "Total Balance Due" amount (usually page 2-3)
+   - PDF: Look at page 3 for the "Subtotal" amount (this is the current month's charges BEFORE adjustments)
+   - **Note:** There may also be "Current Adjustments" showing retroactive charges - these are separate
+   - Example from page 3:
+     * Subtotal (current charges): $15,606.16
+     * Current Adjustments: $765.20
+     * Total Balance Due: $16,371.36
    - CSV: Calculate total by counting each UNIQUE employee's medical cost ONCE:
      * Go through CSV and for each unique employee (where Relationship = "Employee"), take their Medical Plan Cost
      * Add them up ONCE per employee (don't add the spouse/child duplicate costs)
      * Example: Jason Bull's family shows $1,170.56 four times → count it ONCE as $1,170.56
-   - Compare these two totals
+   - **Compare the PDF Subtotal (current charges) with the CSV total**
    - If they match (within $1 due to rounding), say "MATCH"
-   - If different, state both amounts: "PDF: $X, CSV: $Y"
+   - If different, state both amounts: "PDF Current Charges: $X, CSV: $Y"
+   - **If there are adjustments:** Add a note: "PDF also shows $Z in retroactive adjustments (see Premium Per Employee for details)"
 
 5. **Employee Count**:
    - PDF: Look at page 3 for the "TOTAL" number next to employee count
@@ -203,16 +209,27 @@ The CSV lists EVERY person (employees + spouses + children):
    - Only flag as discrepancy if the numbers are DIFFERENT
 
 6. **Premium Per Employee**:
-   - PDF: Read pages 4+ to see individual employee charges
-   - CSV: Each employee row (Relationship = "Employee") shows their Medical Plan Cost
-   - Compare a few examples between PDF and CSV
+   - PDF: Read pages 4+ to see individual employee charges - look at the "Totals" column (far right)
+   - **CRITICAL: Check the "Adjustment Detail" column** for retroactive charges
+   - Some employees may have adjustment codes like "ADD" (retroactive addition), "CHG" (change), or "TRM" (termination)
+   - These adjustments are for previous months being charged now
+   - Example: "Covian, Elias" might show:
+     * Current charge (Feb): $382.60
+     * Adjustment for Dec: $382.60 (ADD code)
+     * Adjustment for Jan: $382.60 (ADD code)  
+     * **Total: $1,147.80** (not $382.60!)
+   - CSV: Each employee row (Relationship = "Employee") shows their Medical Plan Cost (usually just base monthly amount)
+   - **Compare each employee's PDF TOTAL (including adjustments) with their CSV cost**
    - If they match, say "MATCH"
-   - Only list employees whose premiums DON'T match
+   - **FLAG AS DISCREPANCY:** List any employee whose PDF total doesn't match CSV cost
+   - Format: "Employee Name: PDF $X (includes $Y adjustments), CSV $Z"
 
 **CRITICAL COMPARISON RULES:**
 - If two numbers are the SAME, that's a MATCH - don't flag it as a discrepancy
 - Only flag discrepancies when things are actually DIFFERENT
 - When calculating CSV total, only count each employee's cost ONCE (not their family members' duplicate costs)
+- **IMPORTANT:** Always check the "Adjustment Detail" column in the PDF for retroactive charges
+- An employee with adjustments will have a HIGHER PDF total than their CSV cost - this IS a discrepancy
 - Be confident: if you counted 27 employees in both documents, that's a MATCH
 - Don't assume there's a problem just because you see a lot of data
 

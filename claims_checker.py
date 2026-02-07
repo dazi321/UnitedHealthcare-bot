@@ -155,6 +155,18 @@ if st.button("🔍 Check for Discrepancies", type="primary", disabled=not (pdf_f
 
 ---
 
+**CRITICAL: READ THE ENTIRE PDF CAREFULLY**
+- This PDF likely has multiple pages - read ALL of them
+- Employee names are typically listed in detailed tables on later pages, not just the summary page
+- Look through the ENTIRE document to find ALL employee names and data
+- The first page is usually just a summary/cover page
+
+**CRITICAL: EMPLOYEE COUNTING**
+- The CSV has a "Relationship" column (or similar) that shows "Employee", "Spouse", "Child", etc.
+- Only count rows where Relationship = "Employee"
+- DO NOT count "Spouse", "Child", or other dependent rows as separate employees
+- One employee can have multiple rows (for themselves + dependents), but that's still ONE employee
+
 **IMPORTANT INSTRUCTIONS:**
 - INCLUDE handwritten pen marks in your analysis - they may contain adjustments or corrections to amounts
 - If the PDF breaks down premiums into components (e.g., Admin/Excess Loss + Max Claims Liability), ADD THEM UP and compare the TOTAL to the CSV amount
@@ -164,10 +176,10 @@ if st.button("🔍 Check for Discrepancies", type="primary", disabled=not (pdf_f
 Compare the PDF invoice with the Excel/CSV data above. Check ONLY these 7 things:
 
 1. **Policy Number** - Does the policy number match in both documents?
-2. **Names** - List any names that don't match or are missing from one document vs the other
+2. **Names** - List any names that don't match or are missing from one document vs the other. MAKE SURE TO CHECK ALL PAGES OF THE PDF.
 3. **Coverage Periods** - Does the coverage period match? If any employee has a different coverage period, list their name
 4. **Total Amounts** - Does the total invoice premium match? Do individual employee premiums match? List names where premiums don't match
-5. **Employee Count** - Does the employee count match in both documents?
+5. **Employee Count** - Does the employee count match in both documents? COUNT ALL EMPLOYEES FROM ALL PAGES OF THE PDF.
 6. **Premium Per Employee** - Does each employee's premium match? If PDF shows components, add them up first. Include any handwritten adjustments. List names where the TOTAL doesn't match
 7. **Plan Tiers** - Does each employee's plan tier match (e.g., "Employee", "Employee + Family", "Employee + Spouse", "Employee + Children")? List names where the tier doesn't match
 

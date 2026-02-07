@@ -8,12 +8,12 @@ import pandas as pd
 
 # Page config
 st.set_page_config(
-    page_title="United Healthcare Insurance Claims Checker",
+    page_title="Guardian Insurance Claims Checker",
     page_icon="📋",
     layout="wide"
 )
 
-st.title("📋 United Healthcare Insurance Claims Verification")
+st.title("📋 Guardian Insurance Claims Verification")
 st.markdown("Upload PDFs and Excel files to verify data matches")
 
 # API key - check secrets first, then allow manual entry
@@ -177,6 +177,8 @@ Provide your response EXACTLY in this format:
 4. Total Amounts: [MATCH or state discrepancy and list affected employee names]
 5. Employee Count: [MATCH or state the discrepancy]
 6. Premium Per Employee: [MATCH or list employee names with mismatched premiums]
+
+**Summary:** [One sentence: either "All fields match" or "X discrepancies found in: [list which fields]"]"""
                         }
                     ]
                 }]

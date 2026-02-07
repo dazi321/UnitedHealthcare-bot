@@ -8,13 +8,13 @@ import pandas as pd
 
 # Page config
 st.set_page_config(
-    page_title="Insurance Claims Checker",
+    page_title="UHC Claims Checker",
     page_icon="📋",
     layout="wide"
 )
 
-st.title("📋 Insurance Claims Verification")
-st.markdown("Upload PDFs and Excel files to verify data matches")
+st.title("📋 United Healthcare Claims Verification")
+st.markdown("Upload PDFs and CSV files to verify data matches")
 
 # API key - check secrets first, then allow manual entry
 try:
@@ -42,20 +42,20 @@ with col1:
     )
 
 with col2:
-    st.subheader("📊 Excel Files")
-    excel_files = st.file_uploader(
-        "Upload corresponding Excel files",
-        type=['xlsx', 'xls', 'csv'],
+    st.subheader("📊 CSV Files")
+    csv_files = st.file_uploader(
+        "Upload corresponding CSV files",
+        type=['csv'],
         accept_multiple_files=True,
-        key="excel"
+        key="csv"
     )
 
 # Show file counts
-if pdf_files or excel_files:
-    st.info(f"Uploaded: {len(pdf_files) if pdf_files else 0} PDFs, {len(excel_files) if excel_files else 0} Excel files")
+if pdf_files or csv_files:
+    st.info(f"Uploaded: {len(pdf_files) if pdf_files else 0} PDFs, {len(csv_files) if csv_files else 0} CSV files")
 
 # Process button
-if st.button("🔍 Check for Discrepancies", type="primary", disabled=not (pdf_files and excel_files)):
+if st.button("🔍 Check for Discrepancies", type="primary", disabled=not (pdf_files and csv_files)):
     
     # Match files by name
     def get_base_name(filename):
@@ -68,39 +68,39 @@ if st.button("🔍 Check for Discrepancies", type="primary", disabled=not (pdf_f
     
     # Create dictionaries for matching
     pdf_dict = {get_base_name(f.name): f for f in pdf_files}
-    excel_dict = {get_base_name(f.name): f for f in excel_files}
+    csv_dict = {get_base_name(f.name): f for f in csv_files}
     
     # Find matching pairs
     matched_pairs = []
     unmatched_pdfs = []
-    unmatched_excels = []
+    unmatched_csvs = []
     
     for name, pdf in pdf_dict.items():
-        if name in excel_dict:
-            matched_pairs.append((pdf, excel_dict[name]))
+        if name in csv_dict:
+            matched_pairs.append((pdf, csv_dict[name]))
         else:
             unmatched_pdfs.append(pdf.name)
     
-    for name, excel in excel_dict.items():
+    for name, csv in csv_dict.items():
         if name not in pdf_dict:
-            unmatched_excels.append(excel.name)
+            unmatched_csvs.append(csv.name)
     
     # Show matching summary
     st.info(f"✅ Found {len(matched_pairs)} matching pairs")
     
-    if unmatched_pdfs or unmatched_excels:
+    if unmatched_pdfs or unmatched_csvs:
         st.warning("⚠️ Some files couldn't be matched:")
         if unmatched_pdfs:
             st.write("**Unmatched PDFs:**", ", ".join(unmatched_pdfs))
-        if unmatched_excels:
-            st.write("**Unmatched Excel files:**", ", ".join(unmatched_excels))
+        if unmatched_csvs:
+            st.write("**Unmatched CSV files:**", ", ".join(unmatched_csvs))
         
         if not st.checkbox("Continue with matched pairs only"):
             st.stop()
     
     if len(matched_pairs) == 0:
-        st.error("No matching pairs found. Make sure PDF and Excel files have similar names.")
-        st.info("Example: 'claim_001.pdf' matches with 'claim_001.xlsx'")
+        st.error("No matching pairs found. Make sure PDF and CSV files have similar names.")
+        st.info("Example: 'claim_001.pdf' matches with 'claim_001.csv'")
         st.stop()
     
     # Initialize Claude client
@@ -114,7 +114,7 @@ if st.button("🔍 Check for Discrepancies", type="primary", disabled=not (pdf_f
     total_pairs = len(matched_pairs)
     
     # Process each pair
-    for idx, (pdf_file, excel_file) in enumerate(matched_pairs):
+    for idx, (pdf_file, csv_file) in enumerate(matched_pairs):
         status_text.text(f"Processing {idx + 1} of {total_pairs}: {pdf_file.name}")
         
         try:
@@ -122,15 +122,9 @@ if st.button("🔍 Check for Discrepancies", type="primary", disabled=not (pdf_f
             pdf_content = pdf_file.read()
             pdf_base64 = base64.b64encode(pdf_content).decode('utf-8')
             
-            # Read Excel/CSV file as text
-            excel_file.seek(0)  # Reset file pointer
-            if excel_file.name.endswith('.csv'):
-                # Read CSV directly as text
-                excel_text = excel_file.read().decode('utf-8', errors='ignore')
-            else:
-                # For Excel files, convert to readable format
-                df = pd.read_excel(excel_file)
-                excel_text = df.to_string()
+            # Read CSV file as text
+            csv_file.seek(0)  # Reset file pointer
+            csv_text = csv_file.read().decode('utf-8', errors='ignore')
             
             # Create message to Claude
             message = client.messages.create(
@@ -149,54 +143,90 @@ if st.button("🔍 Check for Discrepancies", type="primary", disabled=not (pdf_f
                         },
                         {
                             "type": "text",
-                            "text": f"""Here is the Excel/CSV data:
+                            "text": f"""Here is the CSV data:
 
-{excel_text}
+{csv_text}
 
 ---
 
-**CRITICAL: READ THE ENTIRE PDF CAREFULLY**
-- This PDF likely has multiple pages - read ALL of them
-- Employee names are typically listed in detailed tables on later pages, not just the summary page
-- Look through the ENTIRE document to find ALL employee names and data
-- The first page is usually just a summary/cover page
+**UNDERSTANDING UNITED HEALTHCARE PDF STRUCTURE**
+This is a United Healthcare invoice with a specific structure:
+- Page 1: Cover page with invoice number and account info
+- Pages 2-3: SUMMARY showing totals by plan type (medical, dental, vision, life insurance)
+- Pages 4-6-7: DETAILED EMPLOYEE LISTINGS with individual names and charges
 
-**CRITICAL: EMPLOYEE COUNTING**
-- The CSV has a "Relationship" column (or similar) that shows "Employee", "Spouse", "Child", etc.
-- Only count rows where Relationship = "Employee"
-- DO NOT count "Spouse", "Child", or other dependent rows as separate employees
-- One employee can have multiple rows (for themselves + dependents), but that's still ONE employee
+**CRITICAL: YOU MUST READ PAGES 4-6-7 FOR EMPLOYEE DETAILS**
+The summary pages (2-3) only show plan categories. Employee names and individual charges are on pages 4-6-7.
 
-**IMPORTANT INSTRUCTIONS:**
-- INCLUDE handwritten pen marks in your analysis - they may contain adjustments or corrections to amounts
-- If the PDF breaks down premiums into components (e.g., Admin/Excess Loss + Max Claims Liability), ADD THEM UP and compare the TOTAL to the CSV amount
-- If there are handwritten additions or corrections on the PDF, factor those into the final amounts
-- Only flag as DISCREPANCY if the final numbers don't match, NOT if they're just presented differently
+**UNDERSTANDING THE CSV STRUCTURE**
+The CSV lists EVERY person (employees, spouses, children) with their coverage:
+- Each row shows: Relationship, First Name, Last Name, Coverage Level, Cost
+- For family coverage, the SAME cost appears multiple times (once per family member)
+- Example: Employee + Family at $1,170.56 will show this cost 5 times (employee + spouse + 3 kids)
+- **ONLY count rows where Relationship = "Employee" when counting employees**
+- **ONLY count UNIQUE medical plan costs when calculating totals (don't add duplicate family costs)**
 
-Compare the PDF invoice with the Excel/CSV data above. Check ONLY these 7 things:
+**HOW TO CHECK EACH ITEM:**
 
-1. **Policy Number** - Does the policy number match in both documents?
-2. **Names** - List any names that don't match or are missing from one document vs the other. MAKE SURE TO CHECK ALL PAGES OF THE PDF.
-3. **Coverage Periods** - Does the coverage period match? If any employee has a different coverage period, list their name
-4. **Total Amounts** - Does the total invoice premium match? Do individual employee premiums match? List names where premiums don't match
-5. **Employee Count** - Does the employee count match in both documents? COUNT ALL EMPLOYEES FROM ALL PAGES OF THE PDF.
-6. **Premium Per Employee** - Does each employee's premium match? If PDF shows components, add them up first. Include any handwritten adjustments. List names where the TOTAL doesn't match
-7. **Plan Tiers** - Does each employee's plan tier match (e.g., "Employee", "Employee + Family", "Employee + Spouse", "Employee + Children")? List names where the tier doesn't match
+1. **Invoice Number**: 
+   - Find the invoice number on page 1 of the PDF
+   - State what it is (there's no invoice number in CSV to compare)
+
+2. **Names**: 
+   - Go to pages 4-6-7 of the PDF and list ALL employee names you see
+   - Count them
+   - From CSV, list all unique names where Relationship = "Employee"
+   - Count them
+   - Compare: if counts match AND names match, say "MATCH"
+   - If different, list which names are missing from either document
+
+3. **Coverage Period**:
+   - Find coverage period on PDF (usually page 1 or 2)
+   - There is no coverage period in CSV to compare
+   - Just state what the PDF shows
+
+4. **Total Amount**:
+   - PDF: Find the "TOTAL" or "Total Balance Due" on page 2 or 3
+   - CSV: Calculate total by counting UNIQUE medical plan coverages only
+     * For each unique employee, count their medical plan cost ONCE (not for each family member)
+     * Example: If "Jason Bull" has "Employee + Family" at $1,170.56, count $1,170.56 ONCE even though it appears 4 times in CSV
+   - Compare these totals
+   - If they match (within $1), say "MATCH"
+   - If different, state both amounts
+
+5. **Employee Count**:
+   - PDF: On page 3, look for "TOTAL" with a number next to it - this is the EMPLOYEE count
+   - CSV: Count rows where Relationship = "Employee"
+   - If the numbers match, say "MATCH - Both have X employees"
+   - If different, state both counts
+
+6. **Premium Per Employee**:
+   - PDF: On pages 4-6-7, each employee has individual charges listed
+   - CSV: Each employee row shows their medical plan cost
+   - Compare a few examples to verify they match
+   - If they match, say "MATCH"
+   - If any don't match, list those employees with the discrepancy
+
+**CRITICAL RULES:**
+- READ PAGES 4-6-7 for employee names and details - don't rely only on summary pages
+- When counting employees, ONLY count "Employee" rows, not spouses/children
+- When calculating CSV total, ONLY count each unique employee's medical cost ONCE
+- The number "29" on page 3 is the EMPLOYEE count, not total covered people
+- If two numbers are the SAME, say "MATCH" - don't flag it as a discrepancy
 
 Provide your response EXACTLY in this format:
 
 **Status:** [MATCH or DISCREPANCY FOUND]
 
 **Results:**
-1. Policy Number: [MATCH or state the discrepancy]
-2. Names: [MATCH or list names that don't match/are missing]
-3. Coverage Periods: [MATCH or list employee names with different periods]
-4. Total Amounts: [MATCH or state discrepancy and list affected employee names]
-5. Employee Count: [MATCH or state the discrepancy]
-6. Premium Per Employee: [MATCH or list employee names with mismatched premiums]
-7. Plan Tiers: [MATCH or list employee names with mismatched plan tiers]
+1. Invoice Number: [State the invoice number from PDF]
+2. Names: [MATCH or list specific names that are missing]
+3. Coverage Period: [State the coverage period from PDF]
+4. Total Amount: [MATCH or state both amounts - "PDF: $X, CSV: $Y"]
+5. Employee Count: [MATCH - Both have X employees OR state the discrepancy "PDF has X, CSV has Y"]
+6. Premium Per Employee: [MATCH or list specific employees with different premiums]
 
-**Summary:** [One sentence: either "All fields match" or "X discrepancies found"]"""
+**Summary:** [One sentence: either "All fields match" or "X discrepancies found in: [list which fields]"]"""
                         }
                     ]
                 }]
@@ -207,14 +237,14 @@ Provide your response EXACTLY in this format:
             
             results.append({
                 "pdf": pdf_file.name,
-                "excel": excel_file.name,
+                "csv": csv_file.name,
                 "result": response_text
             })
             
         except Exception as e:
             results.append({
                 "pdf": pdf_file.name,
-                "excel": excel_file.name,
+                "csv": csv_file.name,
                 "result": f"❌ Error processing: {str(e)}"
             })
         
@@ -239,19 +269,19 @@ Provide your response EXACTLY in this format:
     
     # Show each result
     for idx, result in enumerate(results, 1):
-        with st.expander(f"Claim #{idx}: {result['pdf']} ↔ {result['excel']}", expanded="DISCREPANCY" in result["result"]):
+        with st.expander(f"Claim #{idx}: {result['pdf']} ↔ {result['csv']}", expanded="DISCREPANCY" in result["result"]):
             st.markdown(result["result"])
     
     # Download results option
     results_text = "\n\n" + "="*80 + "\n\n".join([
-        f"CLAIM #{idx}\nPDF: {r['pdf']}\nExcel: {r['excel']}\n\n{r['result']}"
+        f"CLAIM #{idx}\nPDF: {r['pdf']}\nCSV: {r['csv']}\n\n{r['result']}"
         for idx, r in enumerate(results, 1)
     ])
     
     st.download_button(
         label="📥 Download Full Report",
         data=results_text,
-        file_name="claims_verification_report.txt",
+        file_name="uhc_claims_verification_report.txt",
         mime="text/plain"
     )
 
@@ -261,7 +291,7 @@ with st.sidebar:
     st.markdown("""
     1. Enter your Claude API key
     2. Upload all PDF files (any order)
-    3. Upload all matching Excel files (any order)
+    3. Upload all matching CSV files (any order)
     4. Click "Check for Discrepancies"
     5. Review results and download report
     
@@ -269,13 +299,13 @@ with st.sidebar:
     Files are automatically matched by name. 
     
     ✅ These will match:
-    - `claim_001.pdf` ↔ `claim_001.xlsx`
+    - `claim_001.pdf` ↔ `claim_001.csv`
     - `invoice_123.pdf` ↔ `invoice_123.csv`
-    - `policy 456.pdf` ↔ `policy 456.xlsx`
+    - `uhc_456.pdf` ↔ `uhc_456.csv`
     
     **Supported Formats:**
     - PDFs: .pdf (including scanned)
-    - Excel: .xlsx, .xls, .csv
+    - CSV: .csv files only
     """)
     
     st.header("💡 Tips")
@@ -284,4 +314,12 @@ with st.sidebar:
     - Name your files consistently for easy matching
     - You can upload all files at once
     - Unmatched files will be shown before processing
+    """)
+    
+    st.header("🏥 UHC Format Notes")
+    st.markdown("""
+    This tool is specifically designed for United Healthcare invoices:
+    - Summary pages show plan totals
+    - Detail pages list individual employees
+    - CSV includes all family members
     """)

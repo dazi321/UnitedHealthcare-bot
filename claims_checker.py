@@ -4,7 +4,6 @@ import os
 from pathlib import Path
 import base64
 import tempfile
-import pandas as pd
 
 # Page config
 st.set_page_config(
@@ -16,16 +15,12 @@ st.set_page_config(
 st.title("📋 Insurance Claims Verification")
 st.markdown("Upload PDFs and Excel files to verify data matches")
 
-# API key - check secrets first, then allow manual entry
-try:
-    api_key = st.secrets["ANTHROPIC_API_KEY"]
-    st.success("✅ API key loaded from secure storage")
-except:
-    api_key = st.text_input("Enter your Claude API key:", type="password", help="Get your API key from console.anthropic.com")
-    if not api_key:
-        st.warning("Please enter your Claude API key to continue")
-        st.info("💡 **Tip for admin:** Store the API key in Streamlit secrets (Settings → Secrets) so users don't need to enter it each time.")
-        st.stop()
+# API key input (will be stored in secrets for deployment)
+api_key = st.text_input("Enter your Claude API key:", type="password", help="Get your API key from console.anthropic.com")
+
+if not api_key:
+    st.warning("Please enter your Claude API key to continue")
+    st.stop()
 
 # File upload section
 st.header("Upload Files")
@@ -122,15 +117,15 @@ if st.button("🔍 Check for Discrepancies", type="primary", disabled=not (pdf_f
             pdf_content = pdf_file.read()
             pdf_base64 = base64.b64encode(pdf_content).decode('utf-8')
             
-            # Read Excel/CSV file as text
-            excel_file.seek(0)  # Reset file pointer
+            # Read Excel file
+            excel_content = excel_file.read()
+            excel_base64 = base64.b64encode(excel_content).decode('utf-8')
+            
+            # Determine Excel media type
             if excel_file.name.endswith('.csv'):
-                # Read CSV directly as text
-                excel_text = excel_file.read().decode('utf-8', errors='ignore')
+                excel_type = 'text/csv'
             else:
-                # For Excel files, convert to readable format
-                df = pd.read_excel(excel_file)
-                excel_text = df.to_string()
+                excel_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             
             # Create message to Claude
             message = client.messages.create(
@@ -148,74 +143,34 @@ if st.button("🔍 Check for Discrepancies", type="primary", disabled=not (pdf_f
                             }
                         },
                         {
+                            "type": "document",
+                            "source": {
+                                "type": "base64",
+                                "media_type": excel_type,
+                                "data": excel_base64
+                            }
+                        },
+                        {
                             "type": "text",
-                            "text": f"""Here is the Excel/CSV data:
+                            "text": """Compare the data in the PDF invoice/claim with the Excel spreadsheet data. 
 
-{excel_text}
+Focus on verifying these fields match:
+- Policy numbers
+- Names
+- Addresses  
+- Dates (period dates, payment dates)
+- Amounts (premiums, totals, payments)
 
----
+Ignore handwritten notes or annotations on the documents.
 
-**IMPORTANT: READ ALL PAGES OF THE PDF**
-The PDF has multiple pages. Employee details are usually on pages 5-9, not just the first page. Make sure you read the ENTIRE document.
-
-**HOW TO CHECK EACH ITEM:**
-
-1. **Policy Number**: Simply check if the policy number matches in both documents.
-
-2. **Names**: 
-   - List ALL names from the PDF (check ALL pages, especially pages 5-9)
-   - Count them
-   - List ALL names from the CSV (count only rows where Relationship = "Employee")
-   - Count them
-   - If the counts match AND the names match, say "MATCH"
-   - Only flag as discrepancy if: (a) counts are different, OR (b) specific names are missing from one document
-
-3. **Coverage Periods**:
-   - If coverage periods are NOT shown in the PDF, say "No coverage periods shown in PDF"
-   - If they ARE shown, compare each employee's period between documents
-   - Only flag discrepancies for employees whose periods don't match
-
-4. **Total Amounts**:
-   - In the PDF, find the "Total Current Premium" (usually on page 9 or 10)
-   - In the CSV, add up all employee premiums (only count rows where Relationship = "Employee")
-   - Compare these two totals
-   - If they match (within $1 due to rounding), say "MATCH"
-   - If different, state both amounts
-
-5. **Employee Count**:
-   - Count employees in PDF
-   - Count employees in CSV (only rows where Relationship = "Employee")
-   - If the numbers are THE SAME, say "MATCH - Both have X employees"
-   - Only flag as discrepancy if the numbers are DIFFERENT
-
-6. **Premium Per Employee**:
-   - In the PDF, each employee has a "Total Premium" column (far right)
-   - In the CSV, each employee has a total premium
-   - Compare these for each employee
-   - If they all match, say "MATCH"
-   - Only list employees whose premiums DON'T match
-
-**CRITICAL COMPARISON RULES:**
-- If two numbers are the SAME, that's a MATCH - don't flag it as a discrepancy
-- Only flag discrepancies when things are actually DIFFERENT
-- Don't assume there's a problem just because you see a lot of data
-- Be confident: if you counted 64 employees in both documents, that's a MATCH
-
-**INCLUDE HANDWRITTEN NOTES**: If there are pen marks or handwritten numbers on the PDF, include those in your analysis.
-
-Provide your response EXACTLY in this format:
+Provide your response in this format:
 
 **Status:** [MATCH or DISCREPANCY FOUND]
 
-**Results:**
-1. Policy Number: [MATCH or state the discrepancy]
-2. Names: [MATCH or list specific names that are missing]
-3. Coverage Periods: [MATCH or "No coverage periods shown in PDF" or list employees with different periods]
-4. Total Amounts: [MATCH or state both amounts - "PDF: $X, CSV: $Y"]
-5. Employee Count: [MATCH - Both have X employees OR state the discrepancy "PDF has X, CSV has Y"]
-6. Premium Per Employee: [MATCH or list specific employees with different premiums]
+**Key Fields Checked:**
+- Field name: [match or mismatch details]
 
-**Summary:** [One sentence: either "All fields match" or "X discrepancies found in: [list which fields]"]"""
+**Summary:** Brief explanation of any discrepancies or confirmation that all data matches."""
                         }
                     ]
                 }]

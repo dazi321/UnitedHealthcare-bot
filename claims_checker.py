@@ -155,53 +155,16 @@ if st.button("🔍 Check for Discrepancies", type="primary", disabled=not (pdf_f
 
 ---
 
-**IMPORTANT: READ ALL PAGES OF THE PDF**
-The PDF has multiple pages. Employee details are usually on pages 5-9, not just the first page. Make sure you read the ENTIRE document.
+Compare the PDF invoice with the Excel/CSV data above. Check ONLY these 6 things:
 
-**HOW TO CHECK EACH ITEM:**
+1. **Policy Number** - Does the policy number match in both documents?
+2. **Names** - List any names that don't match or are missing from one document vs the other
+3. **Coverage Periods** - Does the coverage period match? If any employee has a different coverage period, list their name
+4. **Total Amounts** - Does the total invoice premium match? Do individual employee premiums match? List names where premiums don't match
+5. **Employee Count** - Does the employee count match in both documents?
+6. **Premium Per Employee** - Does each employee's premium match? List names where it doesn't match
 
-1. **Policy Number**: Simply check if the policy number matches in both documents.
-
-2. **Names**: 
-   - List ALL names from the PDF (check ALL pages, especially pages 5-9)
-   - Count them
-   - List ALL names from the CSV (count only rows where Relationship = "Employee")
-   - Count them
-   - If the counts match AND the names match, say "MATCH"
-   - Only flag as discrepancy if: (a) counts are different, OR (b) specific names are missing from one document
-
-3. **Coverage Periods**:
-   - If coverage periods are NOT shown in the PDF, say "No coverage periods shown in PDF"
-   - If they ARE shown, compare each employee's period between documents
-   - Only flag discrepancies for employees whose periods don't match
-
-4. **Total Amounts**:
-   - In the PDF, find the "Total Current Premium" (usually on page 9 or 10)
-   - In the CSV, add up all employee premiums (only count rows where Relationship = "Employee")
-   - Compare these two totals
-   - If they match (within $1 due to rounding), say "MATCH"
-   - If different, state both amounts
-
-5. **Employee Count**:
-   - Count employees in PDF
-   - Count employees in CSV (only rows where Relationship = "Employee")
-   - If the numbers are THE SAME, say "MATCH - Both have X employees"
-   - Only flag as discrepancy if the numbers are DIFFERENT
-
-6. **Premium Per Employee**:
-   - In the PDF, each employee has a "Total Premium" column (far right)
-   - In the CSV, each employee has a total premium
-   - Compare these for each employee
-   - If they all match, say "MATCH"
-   - Only list employees whose premiums DON'T match
-
-**CRITICAL COMPARISON RULES:**
-- If two numbers are the SAME, that's a MATCH - don't flag it as a discrepancy
-- Only flag discrepancies when things are actually DIFFERENT
-- Don't assume there's a problem just because you see a lot of data
-- Be confident: if you counted 64 employees in both documents, that's a MATCH
-
-**INCLUDE HANDWRITTEN NOTES**: If there are pen marks or handwritten numbers on the PDF, include those in your analysis.
+Ignore everything else (retroactive charges, dental vs medical, premium structures, etc.)
 
 Provide your response EXACTLY in this format:
 
@@ -209,13 +172,11 @@ Provide your response EXACTLY in this format:
 
 **Results:**
 1. Policy Number: [MATCH or state the discrepancy]
-2. Names: [MATCH or list specific names that are missing]
-3. Coverage Periods: [MATCH or "No coverage periods shown in PDF" or list employees with different periods]
-4. Total Amounts: [MATCH or state both amounts - "PDF: $X, CSV: $Y"]
-5. Employee Count: [MATCH - Both have X employees OR state the discrepancy "PDF has X, CSV has Y"]
-6. Premium Per Employee: [MATCH or list specific employees with different premiums]
-
-**Summary:** [One sentence: either "All fields match" or "X discrepancies found in: [list which fields]"]"""
+2. Names: [MATCH or list names that don't match/are missing]
+3. Coverage Periods: [MATCH or list employee names with different periods]
+4. Total Amounts: [MATCH or state discrepancy and list affected employee names]
+5. Employee Count: [MATCH or state the discrepancy]
+6. Premium Per Employee: [MATCH or list employee names with mismatched premiums]
                         }
                     ]
                 }]

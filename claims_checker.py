@@ -149,72 +149,72 @@ if st.button("🔍 Check for Discrepancies", type="primary", disabled=not (pdf_f
 
 ---
 
-**UNDERSTANDING UNITED HEALTHCARE PDF STRUCTURE**
-This is a United Healthcare invoice with a specific structure:
-- Page 1: Cover page with invoice number and account info
-- Pages 2-3: SUMMARY showing totals by plan type (medical, dental, vision, life insurance)
-- Pages 4+: DETAILED EMPLOYEE LISTINGS with individual names and charges (continue through ALL remaining pages)
+**IMPORTANT: READ ALL PAGES OF THE PDF**
+This is a United Healthcare invoice with multiple pages:
+- Page 1: Cover page
+- Pages 2-3: Summary totals
+- Pages 4+: DETAILED EMPLOYEE LISTINGS (read ALL remaining pages - there may be many pages of employee details)
 
-**CRITICAL: YOU MUST READ ALL PAGES STARTING FROM PAGE 4 FOR EMPLOYEE DETAILS**
-The summary pages (2-3) only show plan categories. Employee names and individual charges start on page 4 and continue through the rest of the document. Read ALL pages, not just the first few detail pages.
+Make sure you read the ENTIRE document to find ALL employee names.
 
-**UNDERSTANDING THE CSV STRUCTURE**
-The CSV lists EVERY person (employees, spouses, children) with their coverage:
-- Each row shows: Relationship, First Name, Last Name, Coverage Level, Cost
-- For family coverage, the SAME cost appears multiple times (once per family member)
-- Example: Employee + Family at $1,170.56 will show this cost 5 times (employee + spouse + 3 kids)
-- **ONLY count rows where Relationship = "Employee" when counting employees**
-- **ONLY count UNIQUE medical plan costs when calculating totals (don't add duplicate family costs)**
+**UNDERSTANDING THE CSV STRUCTURE - VERY IMPORTANT**
+The CSV lists EVERY person (employees + spouses + children):
+- For family coverage, the SAME cost appears multiple times
+- Example: "Jason Bull" with "Employee + Family" at $1,170.56 will show:
+  - Row 1: Jason Bull (Employee) - $1,170.56
+  - Row 2: Jenni Fromm (Spouse) - $1,170.56
+  - Row 3: Luca Bull (Child) - $1,170.56
+  - Row 4: Maisi Bull (Child) - $1,170.56
+  - This is ONE employee with ONE cost of $1,170.56, NOT four separate costs!
 
 **HOW TO CHECK EACH ITEM:**
 
 1. **Invoice Number**: 
    - Find the invoice number on page 1 of the PDF
-   - State what it is (there's no invoice number in CSV to compare)
+   - State what it is
 
 2. **Names**: 
-   - Go to page 4 and continue reading through ALL subsequent pages of the PDF to find employee names
-   - List ALL employee names you see (employee details continue through all pages after the summary)
+   - Read ALL pages starting from page 4 onwards to list ALL employee names from the PDF
+   - Count them (should match the "TOTAL" number on page 3)
+   - From CSV, list all unique first+last names where Relationship = "Employee"
    - Count them
-   - From CSV, list all unique names where Relationship = "Employee"
-   - Count them
-   - Compare: if counts match AND names match, say "MATCH"
-   - If different, list which names are missing from either document
+   - If the counts match AND the names match, say "MATCH"
+   - Only flag as discrepancy if: (a) counts are different, OR (b) specific names are missing from one document
 
 3. **Coverage Period**:
-   - Find coverage period on PDF (usually page 1 or 2)
-   - There is no coverage period in CSV to compare
-   - Just state what the PDF shows
+   - Find the coverage period on page 1 or 2 of the PDF
+   - State what it shows
+   - Say "No coverage period in CSV to compare"
 
-4. **Total Amount**:
-   - PDF: Find the "TOTAL" or "Total Balance Due" on page 2 or 3
-   - CSV: Calculate total by counting UNIQUE medical plan coverages only
-     * For each unique employee, count their medical plan cost ONCE (not for each family member)
-     * Example: If "Jason Bull" has "Employee + Family" at $1,170.56, count $1,170.56 ONCE even though it appears 4 times in CSV
-   - Compare these totals
-   - If they match (within $1), say "MATCH"
-   - If different, state both amounts
+4. **Total Amounts**:
+   - PDF: Find the "TOTAL" or "Total Balance Due" amount (usually page 2-3)
+   - CSV: Calculate total by counting each UNIQUE employee's medical cost ONCE:
+     * Go through CSV and for each unique employee (where Relationship = "Employee"), take their Medical Plan Cost
+     * Add them up ONCE per employee (don't add the spouse/child duplicate costs)
+     * Example: Jason Bull's family shows $1,170.56 four times → count it ONCE as $1,170.56
+   - Compare these two totals
+   - If they match (within $1 due to rounding), say "MATCH"
+   - If different, state both amounts: "PDF: $X, CSV: $Y"
 
 5. **Employee Count**:
-   - PDF: On page 3, look for "TOTAL" with a number next to it - this is the EMPLOYEE count
-   - CSV: Count rows where Relationship = "Employee"
-   - If the numbers match, say "MATCH - Both have X employees"
-   - If different, state both counts
+   - PDF: Look at page 3 for the "TOTAL" number next to employee count
+   - CSV: Count how many rows have Relationship = "Employee"
+   - If the numbers are THE SAME, say "MATCH - Both have X employees"
+   - Only flag as discrepancy if the numbers are DIFFERENT
 
 6. **Premium Per Employee**:
-   - PDF: Starting from page 4 onwards, each employee has individual charges listed
-   - CSV: Each employee row shows their medical plan cost
-   - Compare a few examples to verify they match
+   - PDF: Read pages 4+ to see individual employee charges
+   - CSV: Each employee row (Relationship = "Employee") shows their Medical Plan Cost
+   - Compare a few examples between PDF and CSV
    - If they match, say "MATCH"
-   - If any don't match, list those employees with the discrepancy
+   - Only list employees whose premiums DON'T match
 
-**CRITICAL RULES:**
-- READ ALL PAGES starting from page 4 onwards for employee names and details - don't rely only on summary pages
-- Employee details continue through the entire document, not just the first few pages after the summary
-- When counting employees, ONLY count "Employee" rows, not spouses/children
-- When calculating CSV total, ONLY count each unique employee's medical cost ONCE
-- The number on page 3 next to "TOTAL" is the EMPLOYEE count, not total covered people
-- If two numbers are the SAME, say "MATCH" - don't flag it as a discrepancy
+**CRITICAL COMPARISON RULES:**
+- If two numbers are the SAME, that's a MATCH - don't flag it as a discrepancy
+- Only flag discrepancies when things are actually DIFFERENT
+- When calculating CSV total, only count each employee's cost ONCE (not their family members' duplicate costs)
+- Be confident: if you counted 27 employees in both documents, that's a MATCH
+- Don't assume there's a problem just because you see a lot of data
 
 Provide your response EXACTLY in this format:
 
@@ -222,9 +222,9 @@ Provide your response EXACTLY in this format:
 
 **Results:**
 1. Invoice Number: [State the invoice number from PDF]
-2. Names: [MATCH or list specific names that are missing]
-3. Coverage Period: [State the coverage period from PDF]
-4. Total Amount: [MATCH or state both amounts - "PDF: $X, CSV: $Y"]
+2. Names: [MATCH or list specific names that are missing - be specific about which document is missing which names]
+3. Coverage Period: [State coverage period from PDF, then say "No coverage period in CSV to compare"]
+4. Total Amounts: [MATCH or state both amounts - "PDF: $X, CSV: $Y"]
 5. Employee Count: [MATCH - Both have X employees OR state the discrepancy "PDF has X, CSV has Y"]
 6. Premium Per Employee: [MATCH or list specific employees with different premiums]
 

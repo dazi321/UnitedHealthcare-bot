@@ -4,7 +4,6 @@ import os
 from pathlib import Path
 import base64
 import tempfile
-import pandas as pd
 
 # Page config
 st.set_page_config(
@@ -122,15 +121,15 @@ if st.button("🔍 Check for Discrepancies", type="primary", disabled=not (pdf_f
             pdf_content = pdf_file.read()
             pdf_base64 = base64.b64encode(pdf_content).decode('utf-8')
             
-            # Read Excel/CSV file as text
-            excel_file.seek(0)  # Reset file pointer
+            # Read Excel file
+            excel_content = excel_file.read()
+            excel_base64 = base64.b64encode(excel_content).decode('utf-8')
+            
+            # Determine Excel media type
             if excel_file.name.endswith('.csv'):
-                # Read CSV directly as text
-                excel_text = excel_file.read().decode('utf-8', errors='ignore')
+                excel_type = 'text/csv'
             else:
-                # For Excel files, convert to readable format
-                df = pd.read_excel(excel_file)
-                excel_text = df.to_string()
+                excel_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             
             # Create message to Claude
             message = client.messages.create(
@@ -148,69 +147,34 @@ if st.button("🔍 Check for Discrepancies", type="primary", disabled=not (pdf_f
                             }
                         },
                         {
+                            "type": "document",
+                            "source": {
+                                "type": "base64",
+                                "media_type": excel_type,
+                                "data": excel_base64
+                            }
+                        },
+                        {
                             "type": "text",
-                            "text": f"""Here is the Excel/CSV data:
+                            "text": """Compare the data in the PDF invoice/claim with the Excel spreadsheet data. 
 
-{excel_text}
+Focus on verifying these fields match:
+- Policy numbers
+- Names
+- Addresses  
+- Dates (period dates, payment dates)
+- Amounts (premiums, totals, payments)
 
----
+Ignore handwritten notes or annotations on the documents.
 
-**CRITICAL: READ THE ENTIRE PDF CAREFULLY**
-- This PDF likely has multiple pages - read ALL of them
-- Employee names are typically listed in detailed tables on later pages, not just the summary page
-- Look through the ENTIRE document to find ALL employee names and data
-- The first page is usually just a summary/cover page
-
-**CRITICAL: UNDERSTANDING THE PDF TABLE STRUCTURE**
-- PDFs often have numbers stacked vertically in columns
-- ALWAYS look at the COLUMN HEADER to understand what the numbers mean
-- Common patterns:
-  * "Premium/Volume" column: TOP number = Premium, BOTTOM number = Volume
-  * "Premium/Weekly Benefit Volume": TOP number = Premium, BOTTOM number = Weekly Benefit
-  * "Premium/Covered Payroll Volume": TOP number = Premium, BOTTOM number = Covered Payroll
-- **NEVER add these stacked numbers together** - they represent different things
-- When comparing premiums, ONLY use the premium number (usually the top one)
-- Look for a "Total Premium" column - this is the final premium total for that employee
-
-**CRITICAL: EMPLOYEE COUNTING (Only applies to #5 Employee Count check)**
-- The CSV has a "Relationship" column that shows "Employee", "Spouse", "Child", etc.
-- When COUNTING employees (#5), only count rows where Relationship = "Employee"
-- DO NOT count "Spouse", "Child", or other dependent rows when counting employees
-- However, when COMPARING NAMES (#2), you should still verify that ALL names match (including spouses and dependents if listed in the PDF)
-
-**IMPORTANT INSTRUCTIONS:**
-- INCLUDE handwritten pen marks in your analysis - they may contain adjustments or corrections to amounts
-- **Understanding Premium Calculations:**
-  - When comparing premiums between PDF and CSV, look at the TOTAL PREMIUM for each employee
-  - If the PDF has multiple coverage columns (Dental, Vision, Voluntary, etc.), the Total Premium column shows the sum
-  - Don't add "Premium" + "Volume" numbers from the same column - they're different data types
-  - If there are handwritten additions, add those to the totals
-- Only flag as DISCREPANCY if the final PREMIUM numbers don't match, NOT if they're just presented differently
-
-Compare the PDF invoice with the Excel/CSV data above. Check ONLY these 7 things:
-
-1. **Policy Number** - Does the policy number match in both documents?
-2. **Names** - Compare ALL names from BOTH documents (including employees and any dependents listed). List any names that don't match or are missing from one document vs the other. MAKE SURE TO CHECK ALL PAGES OF THE PDF.
-3. **Coverage Periods** - Does the coverage period match? If any employee has a different coverage period, list their name
-4. **Total Amounts** - Does the total invoice premium match? Do individual employee TOTAL PREMIUMS match? List names where premiums don't match. Remember: compare TOTAL PREMIUM, not individual coverage components.
-5. **Employee Count** - Count the number of PRIMARY EMPLOYEES (not dependents). In the PDF, count unique employee names. In the CSV, only count rows where Relationship = "Employee". Does the count match?
-6. **Premium Per Employee** - Does each employee's TOTAL PREMIUM match between documents? Look at the "Total Premium" column in the PDF. Include any handwritten adjustments. List names where the TOTAL doesn't match.
-7. **Plan Tiers** - Does each employee's plan tier match (e.g., "Employee", "Employee + Family", "Employee + Spouse", "Employee + Children")? List names where the tier doesn't match.
-
-Provide your response EXACTLY in this format:
+Provide your response in this format:
 
 **Status:** [MATCH or DISCREPANCY FOUND]
 
-**Results:**
-1. Policy Number: [MATCH or state the discrepancy]
-2. Names: [MATCH or list names that don't match/are missing]
-3. Coverage Periods: [MATCH or list employee names with different periods]
-4. Total Amounts: [MATCH or state discrepancy and list affected employee names]
-5. Employee Count: [MATCH or state the discrepancy]
-6. Premium Per Employee: [MATCH or list employee names with mismatched premiums]
-7. Plan Tiers: [MATCH or list employee names with mismatched plan tiers]
+**Key Fields Checked:**
+- Field name: [match or mismatch details]
 
-**Summary:** [One sentence: either "All fields match" or "X discrepancies found"]"""
+**Summary:** Brief explanation of any discrepancies or confirmation that all data matches."""
                         }
                     ]
                 }]

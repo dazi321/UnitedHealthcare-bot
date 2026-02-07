@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import base64
 import tempfile
+import pandas as pd
 
 # Page config
 st.set_page_config(
@@ -121,15 +122,15 @@ if st.button("🔍 Check for Discrepancies", type="primary", disabled=not (pdf_f
             pdf_content = pdf_file.read()
             pdf_base64 = base64.b64encode(pdf_content).decode('utf-8')
             
-            # Read Excel file
-            excel_content = excel_file.read()
-            excel_base64 = base64.b64encode(excel_content).decode('utf-8')
-            
-            # Determine Excel media type
+            # Read Excel/CSV file as text
+            excel_file.seek(0)  # Reset file pointer
             if excel_file.name.endswith('.csv'):
-                excel_type = 'text/csv'
+                # Read CSV directly as text
+                excel_text = excel_file.read().decode('utf-8', errors='ignore')
             else:
-                excel_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                # For Excel files, convert to readable format
+                df = pd.read_excel(excel_file)
+                excel_text = df.to_string()
             
             # Create message to Claude
             message = client.messages.create(
@@ -147,16 +148,14 @@ if st.button("🔍 Check for Discrepancies", type="primary", disabled=not (pdf_f
                             }
                         },
                         {
-                            "type": "document",
-                            "source": {
-                                "type": "base64",
-                                "media_type": excel_type,
-                                "data": excel_base64
-                            }
-                        },
-                        {
                             "type": "text",
-                            "text": """Compare the data in the PDF invoice/claim with the Excel spreadsheet data. 
+                            "text": f"""Here is the Excel/CSV data:
+
+{excel_text}
+
+---
+
+Compare the data in the PDF invoice/claim with the Excel/CSV data above. 
 
 Focus on verifying these fields match:
 - Policy numbers

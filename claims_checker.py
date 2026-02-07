@@ -161,7 +161,7 @@ if st.button("🔍 Check for Discrepancies", type="primary", disabled=not (pdf_f
 - If there are handwritten additions or corrections on the PDF, factor those into the final amounts
 - Only flag as DISCREPANCY if the final numbers don't match, NOT if they're just presented differently
 
-Compare the PDF invoice with the Excel/CSV data above. Check ONLY these 6 things:
+Compare the PDF invoice with the Excel/CSV data above. Check ONLY these 7 things:
 
 1. **Policy Number** - Does the policy number match in both documents?
 2. **Names** - List any names that don't match or are missing from one document vs the other
@@ -169,6 +169,7 @@ Compare the PDF invoice with the Excel/CSV data above. Check ONLY these 6 things
 4. **Total Amounts** - Does the total invoice premium match? Do individual employee premiums match? List names where premiums don't match
 5. **Employee Count** - Does the employee count match in both documents?
 6. **Premium Per Employee** - Does each employee's premium match? If PDF shows components, add them up first. Include any handwritten adjustments. List names where the TOTAL doesn't match
+7. **Plan Tiers** - Does each employee's plan tier match (e.g., "Employee", "Employee + Family", "Employee + Spouse", "Employee + Children")? List names where the tier doesn't match
 
 Provide your response EXACTLY in this format:
 
@@ -181,6 +182,7 @@ Provide your response EXACTLY in this format:
 4. Total Amounts: [MATCH or state discrepancy and list affected employee names]
 5. Employee Count: [MATCH or state the discrepancy]
 6. Premium Per Employee: [MATCH or list employee names with mismatched premiums]
+7. Plan Tiers: [MATCH or list employee names with mismatched plan tiers]
 
 **Summary:** [One sentence: either "All fields match" or "X discrepancies found"]"""
                         }

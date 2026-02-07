@@ -155,25 +155,34 @@ if st.button("🔍 Check for Discrepancies", type="primary", disabled=not (pdf_f
 
 ---
 
-Compare the data in the PDF invoice/claim with the Excel/CSV data above. 
+**IMPORTANT INSTRUCTIONS:**
+- INCLUDE handwritten pen marks in your analysis - they may contain adjustments or corrections to amounts
+- If the PDF breaks down premiums into components (e.g., Admin/Excess Loss + Max Claims Liability), ADD THEM UP and compare the TOTAL to the CSV amount
+- If there are handwritten additions or corrections on the PDF, factor those into the final amounts
+- Only flag as DISCREPANCY if the final numbers don't match, NOT if they're just presented differently
 
-Focus on verifying these fields match:
-- Policy numbers
-- Names
-- Addresses  
-- Dates (period dates, payment dates)
-- Amounts (premiums, totals, payments)
+Compare the PDF invoice with the Excel/CSV data above. Check ONLY these 6 things:
 
-Ignore handwritten notes or annotations on the documents.
+1. **Policy Number** - Does the policy number match in both documents?
+2. **Names** - List any names that don't match or are missing from one document vs the other
+3. **Coverage Periods** - Does the coverage period match? If any employee has a different coverage period, list their name
+4. **Total Amounts** - Does the total invoice premium match? Do individual employee premiums match? List names where premiums don't match
+5. **Employee Count** - Does the employee count match in both documents?
+6. **Premium Per Employee** - Does each employee's premium match? If PDF shows components, add them up first. Include any handwritten adjustments. List names where the TOTAL doesn't match
 
-Provide your response in this format:
+Provide your response EXACTLY in this format:
 
 **Status:** [MATCH or DISCREPANCY FOUND]
 
-**Key Fields Checked:**
-- Field name: [match or mismatch details]
+**Results:**
+1. Policy Number: [MATCH or state the discrepancy]
+2. Names: [MATCH or list names that don't match/are missing]
+3. Coverage Periods: [MATCH or list employee names with different periods]
+4. Total Amounts: [MATCH or state discrepancy and list affected employee names]
+5. Employee Count: [MATCH or state the discrepancy]
+6. Premium Per Employee: [MATCH or list employee names with mismatched premiums]
 
-**Summary:** Brief explanation of any discrepancies or confirmation that all data matches."""
+**Summary:** [One sentence: either "All fields match" or "X discrepancies found"]"""
                         }
                     ]
                 }]

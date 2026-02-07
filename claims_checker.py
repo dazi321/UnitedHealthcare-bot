@@ -8,12 +8,12 @@ import pandas as pd
 
 # Page config
 st.set_page_config(
-    page_title="Guardian Insurance Claims Checker",
+    page_title="United Healthcare Insurance Claims Checker",
     page_icon="📋",
     layout="wide"
 )
 
-st.title("📋 Guardian Insurance Claims Verification")
+st.title("📋 United Healthcare Insurance Claims Verification")
 st.markdown("Upload PDFs and Excel files to verify data matches")
 
 # API key - check secrets first, then allow manual entry

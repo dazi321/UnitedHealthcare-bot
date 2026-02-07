@@ -153,10 +153,10 @@ if st.button("🔍 Check for Discrepancies", type="primary", disabled=not (pdf_f
 This is a United Healthcare invoice with a specific structure:
 - Page 1: Cover page with invoice number and account info
 - Pages 2-3: SUMMARY showing totals by plan type (medical, dental, vision, life insurance)
-- Pages 4-6-7: DETAILED EMPLOYEE LISTINGS with individual names and charges
+- Pages 4+: DETAILED EMPLOYEE LISTINGS with individual names and charges (continue through ALL remaining pages)
 
-**CRITICAL: YOU MUST READ PAGES 4-6-7 FOR EMPLOYEE DETAILS**
-The summary pages (2-3) only show plan categories. Employee names and individual charges are on pages 4-6-7.
+**CRITICAL: YOU MUST READ ALL PAGES STARTING FROM PAGE 4 FOR EMPLOYEE DETAILS**
+The summary pages (2-3) only show plan categories. Employee names and individual charges start on page 4 and continue through the rest of the document. Read ALL pages, not just the first few detail pages.
 
 **UNDERSTANDING THE CSV STRUCTURE**
 The CSV lists EVERY person (employees, spouses, children) with their coverage:
@@ -173,7 +173,8 @@ The CSV lists EVERY person (employees, spouses, children) with their coverage:
    - State what it is (there's no invoice number in CSV to compare)
 
 2. **Names**: 
-   - Go to pages 4-6-7 of the PDF and list ALL employee names you see
+   - Go to page 4 and continue reading through ALL subsequent pages of the PDF to find employee names
+   - List ALL employee names you see (employee details continue through all pages after the summary)
    - Count them
    - From CSV, list all unique names where Relationship = "Employee"
    - Count them
@@ -201,17 +202,18 @@ The CSV lists EVERY person (employees, spouses, children) with their coverage:
    - If different, state both counts
 
 6. **Premium Per Employee**:
-   - PDF: On pages 4-6-7, each employee has individual charges listed
+   - PDF: Starting from page 4 onwards, each employee has individual charges listed
    - CSV: Each employee row shows their medical plan cost
    - Compare a few examples to verify they match
    - If they match, say "MATCH"
    - If any don't match, list those employees with the discrepancy
 
 **CRITICAL RULES:**
-- READ PAGES 4-6-7 for employee names and details - don't rely only on summary pages
+- READ ALL PAGES starting from page 4 onwards for employee names and details - don't rely only on summary pages
+- Employee details continue through the entire document, not just the first few pages after the summary
 - When counting employees, ONLY count "Employee" rows, not spouses/children
 - When calculating CSV total, ONLY count each unique employee's medical cost ONCE
-- The number "29" on page 3 is the EMPLOYEE count, not total covered people
+- The number on page 3 next to "TOTAL" is the EMPLOYEE count, not total covered people
 - If two numbers are the SAME, say "MATCH" - don't flag it as a discrepancy
 
 Provide your response EXACTLY in this format:

@@ -155,25 +155,48 @@ if st.button("🔍 Check for Discrepancies", type="primary", disabled=not (pdf_f
 
 ---
 
-Compare the data in the PDF invoice/claim with the Excel/CSV data above. 
+**CRITICAL: READ THE ENTIRE PDF CAREFULLY**
+- This PDF likely has multiple pages - read ALL of them
+- Employee names are typically listed in detailed tables on later pages, not just the summary page
+- Look through the ENTIRE document to find ALL employee names and data
+- The first page is usually just a summary/cover page
 
-Focus on verifying these fields match:
-- Policy numbers
-- Names
-- Addresses  
-- Dates (period dates, payment dates)
-- Amounts (premiums, totals, payments)
+**CRITICAL: EMPLOYEE COUNTING**
+- The CSV has a "Relationship" column (or similar) that shows "Employee", "Spouse", "Child", etc.
+- Only count rows where Relationship = "Employee"
+- DO NOT count "Spouse", "Child", or other dependent rows as separate employees
+- One employee can have multiple rows (for themselves + dependents), but that's still ONE employee
 
-Ignore handwritten notes or annotations on the documents.
+**IMPORTANT INSTRUCTIONS:**
+- INCLUDE handwritten pen marks in your analysis - they may contain adjustments or corrections to amounts
+- If the PDF breaks down premiums into components (e.g., Admin/Excess Loss + Max Claims Liability), ADD THEM UP and compare the TOTAL to the CSV amount
+- If there are handwritten additions or corrections on the PDF, factor those into the final amounts
+- Only flag as DISCREPANCY if the final numbers don't match, NOT if they're just presented differently
 
-Provide your response in this format:
+Compare the PDF invoice with the Excel/CSV data above. Check ONLY these 7 things:
+
+1. **Policy Number** - Does the policy number match in both documents?
+2. **Names** - List any names that don't match or are missing from one document vs the other. MAKE SURE TO CHECK ALL PAGES OF THE PDF.
+3. **Coverage Periods** - Does the coverage period match? If any employee has a different coverage period, list their name
+4. **Total Amounts** - Does the total invoice premium match? Do individual employee premiums match? List names where premiums don't match
+5. **Employee Count** - Does the employee count match in both documents? COUNT ALL EMPLOYEES FROM ALL PAGES OF THE PDF.
+6. **Premium Per Employee** - Does each employee's premium match? If PDF shows components, add them up first. Include any handwritten adjustments. List names where the TOTAL doesn't match
+7. **Plan Tiers** - Does each employee's plan tier match (e.g., "Employee", "Employee + Family", "Employee + Spouse", "Employee + Children")? List names where the tier doesn't match
+
+Provide your response EXACTLY in this format:
 
 **Status:** [MATCH or DISCREPANCY FOUND]
 
-**Key Fields Checked:**
-- Field name: [match or mismatch details]
+**Results:**
+1. Policy Number: [MATCH or state the discrepancy]
+2. Names: [MATCH or list names that don't match/are missing]
+3. Coverage Periods: [MATCH or list employee names with different periods]
+4. Total Amounts: [MATCH or state discrepancy and list affected employee names]
+5. Employee Count: [MATCH or state the discrepancy]
+6. Premium Per Employee: [MATCH or list employee names with mismatched premiums]
+7. Plan Tiers: [MATCH or list employee names with mismatched plan tiers]
 
-**Summary:** Brief explanation of any discrepancies or confirmation that all data matches."""
+**Summary:** [One sentence: either "All fields match" or "X discrepancies found"]"""
                         }
                     ]
                 }]
